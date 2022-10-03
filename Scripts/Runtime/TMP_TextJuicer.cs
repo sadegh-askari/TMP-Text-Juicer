@@ -9,6 +9,8 @@ namespace BrunoMikoski.TextJuicer
     [AddComponentMenu( "UI/Text Juicer" )]
     public sealed class TMP_TextJuicer : MonoBehaviour
     {
+        public bool PlayReverse;
+        
         [SerializeField]
         private TMP_Text tmpText;
         private TMP_Text TmpText
@@ -228,15 +230,19 @@ namespace BrunoMikoski.TextJuicer
                 return;
 
             tmpText.ForceMeshUpdate(true);
-            for ( int i = 0; i < charactersData.Length; i++ )
-                ModifyCharacter( i, cachedMeshInfo );
+            for (int i = 0; i < charactersData.Length; i++)
+            {
+                int index = GetValidIndex(i, charactersData.Length);
+                ModifyCharacter(index, cachedMeshInfo);
+            }
 
             if ( updateGeometry )
             {
                 for ( int i = 0; i < textInfo.meshInfo.Length; i++ )
                 {
-                    textInfo.meshInfo[i].mesh.vertices = textInfo.meshInfo[i].vertices;
-                    TmpText.UpdateGeometry( textInfo.meshInfo[i].mesh, i );
+                    int index = GetValidIndex(i, textInfo.meshInfo.Length);
+                    textInfo.meshInfo[index].mesh.vertices = textInfo.meshInfo[index].vertices;
+                    TmpText.UpdateGeometry( textInfo.meshInfo[index].mesh, index );
                 }
             }
 
@@ -248,7 +254,8 @@ namespace BrunoMikoski.TextJuicer
         {
             for ( int i = 0; i < vertexModifiers.Length; i++ )
             {
-                vertexModifiers[i].ModifyCharacter( charactersData[info],
+                int index = GetValidIndex(i, vertexModifiers.Length);
+                vertexModifiers[index].ModifyCharacter( charactersData[info],
                                                     TmpText,
                                                     textInfo,
                                                     progress,
@@ -290,8 +297,11 @@ namespace BrunoMikoski.TextJuicer
             if ( charactersData == null )
                 return;
 
-            for ( int i = 0; i < charactersData.Length; i++ )
-                charactersData[i].UpdateTime( internalTime );
+            for (int i = 0; i < charactersData.Length; i++)
+            {
+                int index = GetValidIndex(i, charactersData.Length);
+                charactersData[index].UpdateTime(internalTime);
+            }
         }
 
         private void UpdateIfDirty()
@@ -309,7 +319,8 @@ namespace BrunoMikoski.TextJuicer
 
                 for ( int i = 0; i < vertexModifiers.Length; i++ )
                 {
-                    TextJuicerVertexModifier vertexModifier = vertexModifiers[i];
+                    int index = GetValidIndex(i, vertexModifiers.Length);
+                    TextJuicerVertexModifier vertexModifier = vertexModifiers[index];
 
                     if ( !updateGeometry && vertexModifier.ModifyGeometry )
                         updateGeometry = true;
@@ -329,16 +340,17 @@ namespace BrunoMikoski.TextJuicer
                 int indexCount = 0;
                 for ( int i = 0; i < textInfo.characterCount; i++ )
                 {
-                    if (!textInfo.characterInfo[i].isVisible)
+                    int index = GetValidIndex(i, textInfo.characterCount);
+                    if (!textInfo.characterInfo[index].isVisible)
                         continue;
 
                     CharacterData characterData = new CharacterData( indexCount,
                                                                      delay * indexCount,
                                                                      duration,
                                                                      playForever,
-                                                                     textInfo.characterInfo[i]
+                                                                     textInfo.characterInfo[index]
                                                                              .materialReferenceIndex,
-                                                                     textInfo.characterInfo[i].vertexIndex );
+                                                                     textInfo.characterInfo[index].vertexIndex );
                     newCharacterDataList.Add( characterData );
                     indexCount += 1;
                 }
@@ -351,6 +363,14 @@ namespace BrunoMikoski.TextJuicer
             }
 
             isDirty = false;
+        }
+
+        private int GetValidIndex(int index, int length)
+        {
+            if (PlayReverse)
+                index = length - index - 1;
+
+            return index;
         }
 
         public void SetDirty()
