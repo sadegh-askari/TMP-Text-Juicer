@@ -1,7 +1,9 @@
 {
     "name": "TextJuicer-Editor",
     "references": [
-        "TextJuicer"
+        "TextJuicer",
+        "UnityEditor.TestRunner",
+        "UnityEngine.TestRunner"
     ],
     "includePlatforms": [
         "Editor"
