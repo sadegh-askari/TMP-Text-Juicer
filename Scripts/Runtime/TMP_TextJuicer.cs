@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 using BrunoMikoski.TextJuicer.Modifiers;
 using TMPro;
 using UnityEngine;
@@ -145,8 +147,12 @@ namespace BrunoMikoski.TextJuicer
             internalTime = 0;
         }
 
-        public void Play()
+        [SerializeField] private float _startDelay;
+        public async void Play()
         {
+            if (_startDelay > 0)
+                await Task.Delay(TimeSpan.FromSeconds(_startDelay));
+            
             Play( true );
         }
 
