@@ -8,14 +8,14 @@ using UnityEngine;
 namespace BrunoMikoski.TextJuicer
 {
     [ExecuteInEditMode]
-    [AddComponentMenu( "UI/Text Juicer" )]
+    [AddComponentMenu("UI/Text Juicer")]
     public sealed class TMP_TextJuicer : MonoBehaviour
     {
         public bool PlayReverse;
-        
-        [SerializeField]
-        private TMP_Text tmpText;
-        private TMP_Text TmpText
+
+        [SerializeField] private TMP_Text tmpText;
+
+        public TMP_Text TmpText
         {
             get
             {
@@ -25,11 +25,13 @@ namespace BrunoMikoski.TextJuicer
                     if (tmpText == null)
                         tmpText = GetComponentInChildren<TMP_Text>();
                 }
+
                 return tmpText;
             }
         }
 
         private RectTransform rectTransform;
+
         public RectTransform RectTransform
         {
             get
@@ -51,30 +53,27 @@ namespace BrunoMikoski.TextJuicer
             }
         }
 
-        [SerializeField]
-        private float duration = 0.1f;
+        [SerializeField] private float duration = 0.1f;
 
-        [SerializeField]
-        private float delay = 0.05f;
+        [SerializeField] private float delay = 0.05f;
 
-        [SerializeField]
-        [Range( 0.0f, 1.0f )]
-        private float progress;
-        public float Progress { get { return progress; } }
+        [SerializeField] [Range(0.0f, 1.0f)] private float progress;
 
-        [SerializeField]
-        private bool playWhenReady = true;
+        public float Progress
+        {
+            get { return progress; }
+        }
 
-        [SerializeField]
-        private bool loop;
+        [SerializeField] private bool playWhenReady = true;
 
-        [SerializeField]
-        private bool playForever;
+        [SerializeField] private bool loop;
 
-        [SerializeField]
-        private bool animationControlled;
+        [SerializeField] private bool playForever;
+
+        [SerializeField] private bool animationControlled;
 
         private bool isPlaying;
+
         public bool IsPlaying
         {
             get { return isPlaying; }
@@ -122,12 +121,12 @@ namespace BrunoMikoski.TextJuicer
 
         public void Update()
         {
-            if ( !IsAllComponentsReady() )
+            if (!IsAllComponentsReady())
                 return;
 
             UpdateIfDirty();
 
-            if ( !dispatchedAfterReadyMethod )
+            if (!dispatchedAfterReadyMethod)
             {
                 AfterIsReady();
                 dispatchedAfterReadyMethod = true;
@@ -135,35 +134,38 @@ namespace BrunoMikoski.TextJuicer
 
             CheckProgress();
             UpdateTime();
-            if ( IsPlaying || animationControlled || forceUpdate )
+            if (IsPlaying || animationControlled || forceUpdate)
                 ApplyModifiers();
         }
 
         #endregion
 
         #region Interaction Methods
+
         public void Restart()
         {
             internalTime = 0;
         }
 
         [SerializeField] private float _startDelay;
+
         public async void Play()
         {
             if (_startDelay > 0)
                 await Task.Delay(TimeSpan.FromSeconds(_startDelay));
-            
-            Play( true );
+
+            Play(true);
         }
 
-        public void Play( bool fromBeginning = true )
+        public void Play(bool fromBeginning = true)
         {
-            if ( !IsAllComponentsReady() )
+            if (!IsAllComponentsReady())
             {
                 playWhenReady = true;
                 return;
             }
-            if ( fromBeginning )
+
+            if (fromBeginning)
                 Restart();
 
             isPlaying = true;
@@ -171,7 +173,7 @@ namespace BrunoMikoski.TextJuicer
 
         public void Complete()
         {
-            if ( IsPlaying )
+            if (IsPlaying)
                 progress = 1.0f;
         }
 
@@ -180,7 +182,7 @@ namespace BrunoMikoski.TextJuicer
             isPlaying = false;
         }
 
-        public void SetProgress( float targetProgress )
+        public void SetProgress(float targetProgress)
         {
             progress = targetProgress;
             internalTime = progress * realTotalAnimationTime;
@@ -189,7 +191,7 @@ namespace BrunoMikoski.TextJuicer
             tmpText.havePropertiesChanged = true;
         }
 
-        public void SetPlayForever( bool shouldPlayForever )
+        public void SetPlayForever(bool shouldPlayForever)
         {
             playForever = shouldPlayForever;
         }
@@ -202,29 +204,30 @@ namespace BrunoMikoski.TextJuicer
         #endregion
 
         #region Internal
+
         private void AfterIsReady()
         {
             if (!Application.isPlaying)
                 return;
 
-            if ( playWhenReady )
+            if (playWhenReady)
                 Play();
             else
-                SetProgress( progress );
+                SetProgress(progress);
         }
 
         private bool IsAllComponentsReady()
         {
-            if ( TmpText == null )
+            if (TmpText == null)
                 return false;
 
-            if ( TmpText.textInfo == null )
+            if (TmpText.textInfo == null)
                 return false;
 
-            if ( TmpText.mesh == null )
+            if (TmpText.mesh == null)
                 return false;
 
-            if ( TmpText.textInfo.meshInfo == null )
+            if (TmpText.textInfo.meshInfo == null)
                 return false;
             return true;
         }
@@ -242,42 +245,45 @@ namespace BrunoMikoski.TextJuicer
                 ModifyCharacter(index, cachedMeshInfo);
             }
 
-            if ( updateGeometry )
+            if (updateGeometry)
             {
-                for ( int i = 0; i < textInfo.meshInfo.Length; i++ )
+                for (int i = 0; i < textInfo.meshInfo.Length; i++)
                 {
                     int index = GetValidIndex(i, textInfo.meshInfo.Length);
+                    if (textInfo.meshInfo[index].mesh == null)
+                        continue;
+
                     textInfo.meshInfo[index].mesh.vertices = textInfo.meshInfo[index].vertices;
-                    TmpText.UpdateGeometry( textInfo.meshInfo[index].mesh, index );
+                    TmpText.UpdateGeometry(textInfo.meshInfo[index].mesh, index);
                 }
             }
 
-            if ( updateVertexData )
-                TmpText.UpdateVertexData( TMP_VertexDataUpdateFlags.Colors32 );
-       }
+            if (updateVertexData)
+                TmpText.UpdateVertexData(TMP_VertexDataUpdateFlags.Colors32);
+        }
 
-        private void ModifyCharacter( int info, TMP_MeshInfo[] meshInfo )
+        private void ModifyCharacter(int info, TMP_MeshInfo[] meshInfo)
         {
-            for ( int i = 0; i < vertexModifiers.Length; i++ )
+            for (int i = 0; i < vertexModifiers.Length; i++)
             {
                 int index = GetValidIndex(i, vertexModifiers.Length);
-                vertexModifiers[index].ModifyCharacter( charactersData[info],
-                                                    TmpText,
-                                                    textInfo,
-                                                    progress,
-                                                    meshInfo );
+                vertexModifiers[index].ModifyCharacter(charactersData[info],
+                    TmpText,
+                    textInfo,
+                    progress,
+                    meshInfo);
             }
         }
 
         private void CheckProgress()
         {
-            if ( IsPlaying )
+            if (IsPlaying)
             {
                 internalTime += Time.deltaTime;
                 if (internalTime < realTotalAnimationTime || playForever)
                     return;
 
-                if ( loop )
+                if (loop)
                     internalTime = 0;
                 else
                 {
@@ -295,12 +301,12 @@ namespace BrunoMikoski.TextJuicer
 
         private void UpdateTime()
         {
-            if ( !IsPlaying || animationControlled )
+            if (!IsPlaying || animationControlled)
                 internalTime = progress * realTotalAnimationTime;
             else
                 progress = internalTime / realTotalAnimationTime;
 
-            if ( charactersData == null )
+            if (charactersData == null)
                 return;
 
             for (int i = 0; i < charactersData.Length; i++)
@@ -312,31 +318,31 @@ namespace BrunoMikoski.TextJuicer
 
         private void UpdateIfDirty()
         {
-            if ( !isDirty )
+            if (!isDirty)
                 return;
 
             if (!gameObject.activeInHierarchy || !gameObject.activeSelf)
                 return;
 
             TextJuicerVertexModifier[] currentComponents = GetComponents<TextJuicerVertexModifier>();
-            if ( vertexModifiers == null || vertexModifiers != currentComponents )
+            if (vertexModifiers == null || vertexModifiers != currentComponents)
             {
                 vertexModifiers = currentComponents;
 
-                for ( int i = 0; i < vertexModifiers.Length; i++ )
+                for (int i = 0; i < vertexModifiers.Length; i++)
                 {
                     int index = GetValidIndex(i, vertexModifiers.Length);
                     TextJuicerVertexModifier vertexModifier = vertexModifiers[index];
 
-                    if ( !updateGeometry && vertexModifier.ModifyGeometry )
+                    if (!updateGeometry && vertexModifier.ModifyGeometry)
                         updateGeometry = true;
 
-                    if ( !updateVertexData && vertexModifier.ModifyVertex )
+                    if (!updateVertexData && vertexModifier.ModifyVertex)
                         updateVertexData = true;
                 }
             }
 
-            if ( string.IsNullOrEmpty( cachedText ) || !cachedText.Equals( TmpText.text ) )
+            if (string.IsNullOrEmpty(cachedText) || !cachedText.Equals(TmpText.text))
             {
                 TmpText.ForceMeshUpdate();
                 textInfo = TmpText.textInfo;
@@ -344,20 +350,20 @@ namespace BrunoMikoski.TextJuicer
 
                 List<CharacterData> newCharacterDataList = new List<CharacterData>();
                 int indexCount = 0;
-                for ( int i = 0; i < textInfo.characterCount; i++ )
+                for (int i = 0; i < textInfo.characterCount; i++)
                 {
                     int index = GetValidIndex(i, textInfo.characterCount);
                     if (!textInfo.characterInfo[index].isVisible)
                         continue;
 
-                    CharacterData characterData = new CharacterData( indexCount,
-                                                                     delay * indexCount,
-                                                                     duration,
-                                                                     playForever,
-                                                                     textInfo.characterInfo[index]
-                                                                             .materialReferenceIndex,
-                                                                     textInfo.characterInfo[index].vertexIndex );
-                    newCharacterDataList.Add( characterData );
+                    CharacterData characterData = new CharacterData(indexCount,
+                        delay * indexCount,
+                        duration,
+                        playForever,
+                        textInfo.characterInfo[index]
+                            .materialReferenceIndex,
+                        textInfo.characterInfo[index].vertexIndex);
+                    newCharacterDataList.Add(characterData);
                     indexCount += 1;
                 }
 
@@ -383,6 +389,7 @@ namespace BrunoMikoski.TextJuicer
         {
             isDirty = true;
         }
+
         #endregion
     }
 }
